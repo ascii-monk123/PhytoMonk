@@ -96,5 +96,5 @@ def extract_channel(colorspace:str, channel_idx:int, image:np.ndarray) -> np.nda
     
     else:
         color = image.copy()
-    
+
     return color[:, :, channel_idx]

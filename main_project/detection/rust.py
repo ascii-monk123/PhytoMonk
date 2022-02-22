@@ -86,6 +86,7 @@ def extract_disease_multi_otsu(regions:np.ndarray, typ:str, mask:np.ndarray = No
 
     '''
     maxi = np.amax(regions)
+    regions = cv2.bitwise_and(regions, regions, mask = mask)
     resArr = []
 
     #a* thresholding
@@ -98,6 +99,7 @@ def extract_disease_multi_otsu(regions:np.ndarray, typ:str, mask:np.ndarray = No
                 resArr.append(0)
 
         resArr = np.array(resArr, dtype = np.uint8).reshape(regions.shape)
+        resArr = cv2.bitwise_and(resArr, resArr, mask = mask)
 
     #h thresholding
     elif typ.lower() == "h":
@@ -114,7 +116,7 @@ def extract_disease_multi_otsu(regions:np.ndarray, typ:str, mask:np.ndarray = No
     return resArr
 
 #segmentation on the a* channel
-def segment_disease(leaf_image:np.ndarray, mask:np.ndarray, typ:str = "a") -> np.ndarray:
+def segment_disease(leaf_image:np.ndarray, l_mask:np.ndarray, typ:str = "a") -> np.ndarray:
     '''
     Perform a* channel segmentation on the input mildew affected leaf.
     
@@ -127,14 +129,13 @@ def segment_disease(leaf_image:np.ndarray, mask:np.ndarray, typ:str = "a") -> np
     resArr => segmentation result 
     '''
     #convert to required colorspace and extract the channel
-
     #extract channel
-    if typ =="a":
+    if typ.lower() =="a":
         channel = extract_channel('lab', 1, leaf_image)
-    elif typ =="h":
+    elif typ.lower() =="h":
         channel = extract_channel('hsv', 0, leaf_image)
 
-    channel = cv2.bitwise_and(channel, channel, mask)
+    channel = cv2.bitwise_and(channel, channel, mask = l_mask.copy())
     #stretch contrast
     con_ch = stretch_contrast(channel)
 
@@ -143,7 +144,7 @@ def segment_disease(leaf_image:np.ndarray, mask:np.ndarray, typ:str = "a") -> np
     regions = np.digitize(con_ch, bins=thresholds)
 
     #cleanup after otsu multithreshold
-    resArr = extract_disease_multi_otsu(regions, type, mask.copy())
+    resArr = extract_disease_multi_otsu(regions, typ, l_mask.copy())
 
 
     return resArr
