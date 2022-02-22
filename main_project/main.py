@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from helpers import load_image, smoothen_image, use_mask
 import detection.mildew as mld
+import detection.rust as rst
 import sys
 import argparse
 

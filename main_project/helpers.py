@@ -73,3 +73,28 @@ def use_mask(mask:np.ndarray, image:np.ndarray, invert:bool = False) -> np.ndarr
     resimage = cv2.bitwise_and(image, image, mask = mask)
     resimage[mask == 0] = [0, 0, 0]
     return resimage
+
+#extract channel
+def extract_channel(colorspace:str, channel_idx:int, image:np.ndarray) -> np.ndarray:
+    '''
+    Extracts color-channel from given image.
+
+    Inputs=>
+    colorspace: either rgb or hsv. If invalid, return image[:, :, channel_idx]
+    channel_idx: index of the channel needed
+    image: np.ndarray representation of the image in rgb
+
+    Returns=>
+    channel: np.ndarray color channel representation
+    '''
+    color = None
+    if colorspace.lower() == 'hsv':
+        color = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    
+    elif colorspace.lower()=='lab':
+        color = cv2.cvtColor(image, cv2.COLOR_RGB2LAB)
+    
+    else:
+        color = image.copy()
+    
+    return color[:, :, channel_idx]
