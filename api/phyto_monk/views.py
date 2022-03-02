@@ -1,6 +1,7 @@
 # import the necessary packages
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from httplib2 import Http
 import numpy as np
 import urllib
 import json
@@ -13,6 +14,7 @@ from PIL import Image
 from .detection import mildew as mld
 from .detection import rust as rst
 import io
+from .utils.helpers import compress_nparr
 
 #convert numpy array to iamge
 def to_image(numpy_img):
@@ -20,7 +22,7 @@ def to_image(numpy_img):
     return img
 
 #extract lesions from image
-def detection(image, disease_type, smooth):
+def detection(image, disease_type, smooth)->np.ndarray:
 	#if rust disease
 	if disease_type.lower() == "rust":
 		#perform rust background extraction
@@ -38,7 +40,7 @@ def detection(image, disease_type, smooth):
 		#get lesion region for h channel thresholds
 		cache_h = plot_detected_region(segment_h, image)
 
-		return [cache_a, cache_h]
+		return np.array([cache_a, cache_h])
 	
 	#if mildew disease
 	if disease_type.lower() == "mildew":
@@ -56,7 +58,7 @@ def detection(image, disease_type, smooth):
 		segment_km = mld.k_means_seg(leaf, leaf_mask)
 		cache_k = plot_detected_region(segment_km, image)
 
-		return [cache_b, cache_k]
+		return np.array([cache_b, cache_k])
 
 
 
@@ -95,24 +97,16 @@ def detect(request):
 			disease_type = request.POST.get("disease_type")
 			#call the detection technique
 			cache = detection(image, disease_type, smooth)
-			#if cache length is 2 loop through and generate images
-			if len(cache) == 2:
-				test = to_image(np.array(cache[0][0]).astype(np.uint8))
-				file_like_object = io.BytesIO()
-				test.save(file_like_object, format='png')
-				response = HttpResponse(file_like_object.getvalue(), content_type = "image/png")
-				response['Content-Disposition'] = 'attachment; filename="result_lol.png"'
 
-				return response
+			#if cache length is 2 generate json file
+			if cache.shape[0] == 2:
+				resp,_ ,_ = compress_nparr(cache)
+				return HttpResponse(resp, status = 200, content_type = 'application/octet_stream')
+				
 
 		else:
 			data["error"] = "No infection specified."
 			return JsonResponse(data)
-
-		
-
-
-	
 
 	# return a JSON response
 	return JsonResponse(data)
@@ -140,3 +134,29 @@ def _grab_image(path=None, stream=None, url=None):
  
 	# return the image
 	return image
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	###For testing ######
+
+				#if cache length is 2 loop through and generate images
+			# if len(cache) == 2:
+			# 	test = to_image(np.array(cache[1][0]).astype(np.uint8))
+			# 	file_like_object = io.BytesIO()
+			# 	test.save(file_like_object, format='png')
+			# 	response = HttpResponse(file_like_object.getvalue(), content_type = "image/png")
+			# 	response['Content-Disposition'] = 'attachment; filename="result_lol.png"'

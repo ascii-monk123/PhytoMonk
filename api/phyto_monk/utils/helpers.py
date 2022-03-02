@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import List
+import io
+import zlib
 
 #function to load images
 def load_image(path:str) -> np.ndarray:
@@ -124,3 +126,21 @@ def plot_detected_region(segment:np.ndarray, image:np.ndarray) -> List :
     
     cache[1] = cpy.copy()
     return cache
+
+#compress nparray
+def compress_nparr(nparr):
+    """
+    Returns the given numpy array as compressed bytestring,
+    the uncompressed and the compressed byte size.
+    """
+    bytestream = io.BytesIO()
+    np.save(bytestream, nparr)
+    uncompressed = bytestream.getvalue()
+    compressed = zlib.compress(uncompressed)
+    return compressed, len(uncompressed), len(compressed)
+
+#decompress nparray
+def uncompress_nparr(bytestring):
+    """
+    """
+    return np.load(io.BytesIO(zlib.decompress(bytestring)))

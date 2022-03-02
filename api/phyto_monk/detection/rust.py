@@ -145,6 +145,7 @@ def segment_disease(leaf_image:np.ndarray, l_mask:np.ndarray, typ:str = "a") -> 
 
     #cleanup after otsu multithreshold
     resArr = extract_disease_multi_otsu(regions, typ, l_mask.copy())
+    resArr = cv2.erode(resArr, kernel = np.ones((3, 3)), iterations = 2)
 
 
     return resArr
