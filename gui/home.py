@@ -30,8 +30,10 @@ class UI(QMainWindow):
         self.info_line = self.findChild(QLineEdit, "path")
         self.original_image = self.findChild(QLabel, "image_original")
 
-        #select the path selection button
+        #path selection handler
         self.tool_button.clicked.connect(self.imageSelection)
+        #submit button handler
+        self.push_button.clicked.connect(self.send_image)
 
     #method to save image selection
     def imageSelection(self):
@@ -50,6 +52,21 @@ class UI(QMainWindow):
         self.pixmap = QPixmap(image_path)
         self.original_image.setPixmap(self.pixmap)
 
+    #method to submit data to the server
+    def send_image(self):
+        #check if radio buttons are enabled
+        if not (self.radio1.isChecked() or self.radio2.isChecked()):
+            self.showErrorMessage("Please Select a disease type")
+            return
+
+        #check if image path is specified or not
+        if not(self.info_line.text() and len(self.info_line.text()) > 0):
+            self.showErrorMessage("Path not specified")
+            return
+        
+        print("ready for take off...")
+
+
     def showErrorMessage(self, text:str):
         err = QMessageBox()
         #set error message
@@ -60,6 +77,7 @@ class UI(QMainWindow):
         err.setStandardButtons(QMessageBox.Ok)
 
         retval = err.exec_()
+    
 
 
 if __name__ == "__main__":
