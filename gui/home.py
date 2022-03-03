@@ -1,13 +1,21 @@
-from PyQt5.QtWidgets import QMainWindow, QApplication,QPushButton, QToolButton, QLabel, QRadioButton, QLineEdit, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QWidget, QApplication,QPushButton, QToolButton, QLabel, QRadioButton, QLineEdit, QFileDialog, QMessageBox
 from PyQt5 import QtWidgets
 from PyQt5 import uic
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QImage
 import sys
+from connect import get_results
+
+#convert numpy array ti qpix
+def np_to_qpix(image):
+    w, h, ch = image.shape
+    q_image = QImage(image.data, h, w, 3*h, QImage.Format_RGB888)
+    q_pix = QPixmap(q_image)
+    return q_pix
 
 #main ui window
-class UI(QMainWindow):
+class Home(QWidget):
     def __init__(self):
-        super(UI, self).__init__()
+        super().__init__()
 
         #load the ui file
         uic.loadUi("home.ui", self)
@@ -17,9 +25,9 @@ class UI(QMainWindow):
 
         #define the widgets
         self.UIComponents()
+        self.setFixedSize(1300, 730)
+        self.show()
 
-        self.showMaximized()
-    
     def UIComponents(self):
         #select the ui components
         self.push_button = self.findChild(QPushButton, "submit")
@@ -29,7 +37,7 @@ class UI(QMainWindow):
         self.radio2 = self.findChild(QRadioButton, "rust_select")
         self.info_line = self.findChild(QLineEdit, "path")
         self.original_image = self.findChild(QLabel, "image_original")
-
+        self.radio_bindings = ['mildew', 'rust']
         #path selection handler
         self.tool_button.clicked.connect(self.imageSelection)
         #submit button handler
@@ -64,8 +72,21 @@ class UI(QMainWindow):
             self.showErrorMessage("Path not specified")
             return
         
-        print("ready for take off...")
+        disease = ''
+        if self.radio1.isChecked():
+            disease = self.radio_bindings[0]
+        
+        elif self.radio2.isChecked():
+            disease = self.radio_bindings[1]
+        
+        self.results(disease)
 
+    #show result window
+    def results(self, disease):
+        self.window2 = QtWidgets.QMainWindow()
+        self.ui = Results(disease, self.info_line.text())
+        self.ui.setupUi(self.window2)
+        self.window2().show()
 
     def showErrorMessage(self, text:str):
         err = QMessageBox()
@@ -78,11 +99,73 @@ class UI(QMainWindow):
 
         retval = err.exec_()
     
+#place to show the results
+class Results(QWidget):
+    def __init__(self, disease_type, image_path):
+        super(Results, self).__init__()
+        #load the ui file
+        uic.loadUi("result.ui", self)
+        #set window title
+        self.setWindowTitle("PhytoMonk GUI ⛑")
+        self.disease = disease_type
+        self.image_path = image_path
+
+
+        #define the widgets
+        self.UIComponents()
+        self.setFixedSize(1300, 730)
+        self.show()
+    
+    def UIComponents(self):
+        #select the ui components
+        self.label = self.findChild(QLabel, "disease_type")
+        self.result1 = self.findChild(QLabel, "result1")
+        self.result2 = self.findChild(QLabel, "result2")
+        self.severity1 = self.findChild(QLabel, "severity1")
+        self.severity2 = self.findChild(QLabel, "severity2")
+        self.label.setText(self.disease)
+        #get detection results
+        cache1, cache2 = self.getres(self.disease, self.image_path, 'http://127.0.0.1:8000/detect/')
+
+        if cache1 is None or cache2 is None:
+            self.result1.setText("Error!")
+            self.result2.setText("Error!")
+            return
+        
+        im1 = cache1[0]
+        im2  = cache2[0]
+
+        self.set_images(im1, im2)
+
+
+    #set result images on screes
+    def set_images(self, image1, image2):
+        qpix1 = np_to_qpix(image1)
+        qpix2 = np_to_qpix(image2)
+        #set pixmaps
+        self.result2.setPixmap(qpix2)
+        self.result1.setPixmap(qpix1)
+
+
+
+
+     #get results from server
+    def getres(self, disease_type, image_path, server_path):
+       
+        try:
+            cache1, cache2 = get_results(server_path, image_path, disease_type)
+            return (cache1, cache2)
+        except:
+            return None, None
+
+        
+
+
 
 
 if __name__ == "__main__":
     App = QApplication(sys.argv)
-    ui = UI()
+    ui = Home()
     sys.exit(App.exec())
 
 
