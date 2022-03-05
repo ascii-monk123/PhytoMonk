@@ -7,7 +7,7 @@ import urllib
 import json
 import cv2
 import os
-from .utils.helpers import smoothen_image, use_mask, plot_detected_region
+from .utils.helpers import smoothen_image, use_mask
 from django.http import HttpResponse
 from wsgiref.util import FileWrapper
 from PIL import Image
@@ -32,15 +32,11 @@ def detection(image, disease_type, smooth)->np.ndarray:
 
 		#perform a* thresholding
 		segment_a = rst.segment_disease(leaf, l_mask = leaf_mask, typ = "a")
-		#get lesion regions and segmented binary image
-		cache_a = plot_detected_region(segment_a, image)
-
+	
 		#perform h thresholding
 		segment_h = rst.segment_disease(leaf, leaf_mask.copy(), "h")
-		#get lesion region for h channel thresholds
-		cache_h = plot_detected_region(segment_h, image)
 
-		return np.array([cache_a, cache_h])
+		return np.array([segment_a, segment_h, leaf_mask])
 	
 	#if mildew disease
 	if disease_type.lower() == "mildew":
@@ -49,16 +45,12 @@ def detection(image, disease_type, smooth)->np.ndarray:
 		#use leaf_mask to extract leaf region
 		leaf = use_mask(leaf_mask, smooth)
 
-		#perform b* thresholding
-		segment_b = mld.segment_disease_b(leaf, leaf_mask)
-		#get lesion region for mildew b* thresholding
-		cache_b = plot_detected_region(segment_b, image)
-
+		#perform kmeans a* thresholding
+		segment_km_a = mld.k_means_seg(leaf, leaf_mask)
 		#perform k-means thresholding
-		segment_km = mld.k_means_seg(leaf, leaf_mask)
-		cache_k = plot_detected_region(segment_km, image)
-
-		return np.array([cache_b, cache_k])
+		segment_km = mld.k_means_seg_rgb(leaf)
+	
+		return np.array([segment_km_a, segment_km, leaf_mask])
 
 
 
@@ -99,7 +91,8 @@ def detect(request):
 			cache = detection(image, disease_type, smooth)
 
 			#if cache length is 2 generate json file
-			if cache.shape[0] == 2:
+
+			if cache.shape[0] == 3:
 				resp,_ ,_ = compress_nparr(cache)
 				return HttpResponse(resp, status = 200, content_type = 'application/octet_stream')
 				

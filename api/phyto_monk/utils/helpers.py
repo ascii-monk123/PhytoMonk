@@ -119,10 +119,11 @@ def plot_detected_region(segment:np.ndarray, image:np.ndarray) -> List :
     #plot red infected region
     cache = [None, None]
     cpy[segment == 255] = [255, 0, 0]
+    cpy = cv2.cvtColor(cpy, cv2.COLOR_RGB2GRAY)
+
     cache[0] = cpy.copy()
     #get segmented region
-    cpy = image.copy()
-    cpy[segment == 0] = [0, 0, 0]
+    cpy = segment.copy()
     
     cache[1] = cpy.copy()
     return cache

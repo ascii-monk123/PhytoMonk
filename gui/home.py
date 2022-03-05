@@ -4,6 +4,7 @@ from PyQt5 import uic
 from PyQt5.QtGui import QPixmap, QImage
 import sys
 from connect import get_results
+import cv2
 
 #convert numpy array ti qpix
 def np_to_qpix(image):
@@ -109,11 +110,19 @@ class Results(QWidget):
         self.setWindowTitle("PhytoMonk GUI ⛑")
         self.disease = disease_type
         self.image_path = image_path
-
+        self.titl1 = ''
+        self.titl2 = ''
+        if disease_type == "mildew":
+            self.titl1 = 'k-means a*b* segmentation'
+            self.titl2 = 'kmeans  rgb segmentation'
+        
+        elif disease_type == "rust":
+            self.titl1 = 'a* threshold'
+            self.title2 = 'h threshold'
 
         #define the widgets
         self.UIComponents()
-        self.setFixedSize(1300, 730)
+        self.setMaximumSize(1300, 730)
         self.show()
     
     def UIComponents(self):
@@ -123,19 +132,23 @@ class Results(QWidget):
         self.result2 = self.findChild(QLabel, "result2")
         self.severity1 = self.findChild(QLabel, "severity1")
         self.severity2 = self.findChild(QLabel, "severity2")
+        self.type1 = self.findChild(QLabel, "type1")
+        self.type2 = self.findChild(QLabel, "type2")
         self.label.setText(self.disease)
+        self.type1.setText(self.titl1)
+        self.type2.setText(self.titl2)
         #get detection results
-        cache1, cache2 = self.getres(self.disease, self.image_path, 'http://127.0.0.1:8000/detect/')
+        res1, res2, quant1, quant2 = self.getres(self.disease, self.image_path, 'http://127.0.0.1:8000/detect/')
 
-        if cache1 is None or cache2 is None:
+        if res1 is None or res2 is None:
             self.result1.setText("Error!")
             self.result2.setText("Error!")
             return
-        
-        im1 = cache1[0]
-        im2  = cache2[0]
+    
+        self.severity1.setText(str(quant1))
+        self.severity2.setText(str(quant2))
 
-        self.set_images(im1, im2)
+        self.set_images(res1, res2)
 
 
     #set result images on screes
@@ -153,8 +166,9 @@ class Results(QWidget):
     def getres(self, disease_type, image_path, server_path):
        
         try:
-            cache1, cache2 = get_results(server_path, image_path, disease_type)
-            return (cache1, cache2)
+            cache1, cache2, quant1, quant2 = get_results(server_path, image_path, disease_type)
+            
+            return (cache1, cache2, quant1, quant2)
         except:
             return None, None
 

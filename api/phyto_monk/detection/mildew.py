@@ -136,7 +136,58 @@ def k_means_seg(image, mask):
     
     _, thres = cv2.threshold(a, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     
-    thres = cv2.erode(thres, kernel = np.ones((3, 3)), iterations = 1)
-    thres = cv2.dilate(thres, kernel = np.ones((3, 3)), iterations = 1)
     
     return thres
+
+#kmeans segmentation on the rgb channel (gives better results)
+def k_means_seg_rgb(image):
+    '''
+    Perform k-means segmentation on the rgb channel
+    Inputs:
+    image => np.ndarray representation of the leaf image
+
+    Returns:
+    mask => mask of the detected infection regions
+    '''
+
+    shape = image.shape
+
+    vector = image[:,:,0:]
+    vector=vector.reshape(-1,3)
+
+    #convert to float32
+    vector=np.float32(vector)
+
+    #criteria
+    criteria=(cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER,10,1.0)
+    K=4
+    attempts=10
+    _,label,center=cv2.kmeans(vector,K,None,criteria,attempts,cv2.KMEANS_PP_CENTERS)
+
+    #extract cluster pixels with colors
+    center=np.uint8(center)
+    res=center[label.flatten()]
+
+    #convert to image
+    resArr=[]
+    for ele in res:
+        r, g, b=ele[0],ele[1], ele[2]
+        resArr.append([r,g,b])
+    resArr=np.array(resArr,dtype=np.uint8)
+    resArr=resArr.reshape(shape)
+    #get grayscale representation of the image
+    gray = cv2.cvtColor(resArr, cv2.COLOR_RGB2GRAY)
+
+    maxi = np.amax(gray)
+    #extract required regions
+    resImg = []
+
+    for pix in gray.reshape(-1):
+        if pix == maxi:
+            resImg.append([255])
+        else:
+            resImg.append([0])
+    resImg = np.array(resImg, dtype = np.uint8).reshape(gray.shape)
+
+    #return the mask
+    return resImg
