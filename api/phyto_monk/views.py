@@ -43,7 +43,7 @@ def detection(image, disease_type, smooth)->np.ndarray:
 		#get the leaf_mask
 		leaf_mask = mld.extract_background(smooth)
 		#use leaf_mask to extract leaf region
-		leaf = use_mask(leaf_mask, smooth)
+		leaf = use_mask(leaf_mask, image)
 
 		#perform kmeans a* thresholding
 		segment_km_a = mld.k_means_seg(leaf, leaf_mask)

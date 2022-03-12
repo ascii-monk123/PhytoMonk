@@ -60,7 +60,6 @@ def get_results(server_url:str, imagePath:str, disease_type:str):
     
     return (plot_1, plot_2, quant_a, quant_b)
 
-get_results('http://127.0.0.1:8000/detect/','/home/aahan/Documents/Major Project/mildew/cherry_powdery_mildew/1.jpg','mildew')
 
 
 

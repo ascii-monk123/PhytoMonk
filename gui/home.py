@@ -113,8 +113,8 @@ class Results(QWidget):
         self.titl1 = ''
         self.titl2 = ''
         if disease_type == "mildew":
-            self.titl1 = 'k-means a*b* segmentation'
-            self.titl2 = 'kmeans  rgb segmentation'
+            self.titl1 = 'k-means a*b* seg'
+            self.titl2 = 'kmeans  rgb seg'
         
         elif disease_type == "rust":
             self.titl1 = 'a* threshold'
@@ -139,7 +139,8 @@ class Results(QWidget):
         self.type2.setText(self.titl2)
         #get detection results
         res1, res2, quant1, quant2 = self.getres(self.disease, self.image_path, 'http://127.0.0.1:8000/detect/')
-
+        quant1 = round(quant1, 4)
+        quant2 = round(quant2, 4)
         if res1 is None or res2 is None:
             self.result1.setText("Error!")
             self.result2.setText("Error!")
