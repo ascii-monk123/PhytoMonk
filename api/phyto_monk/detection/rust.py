@@ -6,6 +6,24 @@ from typing import List
 from skimage.filters import threshold_multiotsu
 
 
+def use_mask(mask:np.ndarray, image:np.ndarray, invert:bool = False) -> np.ndarray:
+    '''
+    Perform and operation on input image and mask
+    Inputs:
+    mask => binary mask 
+    image => np.ndarray representation of the image
+    invert => boolean, if set to true, mask will be inverted before pixelwise & operation.
+    Returns:
+    resimage => np.ndarray representation of the and operation between mask and image.
+    '''
+    #if we want background
+    if invert is True:
+        mask = 255 - mask
+        
+    resimage = cv2.bitwise_and(image, image, mask = mask)
+    resimage[mask == 0] = [0, 0, 0]
+    return resimage
+
 
 def extract_background(image:np.ndarray) -> np.ndarray:
     '''
@@ -115,6 +133,57 @@ def extract_disease_multi_otsu(regions:np.ndarray, typ:str, mask:np.ndarray = No
 
     return resArr
 
+#kmeans clustering on h channel
+def k_means_cluster_h(leaf_image, leaf_mask, k_val):
+    shape=leaf_image.shape
+    lm = cv2.cvtColor(leaf_image, cv2.COLOR_RGB2HSV)
+    vector=lm[:,:,0:1]
+    vector=vector.reshape(-1,1)
+
+    #convert to float32
+    vector=np.float32(vector)
+
+    #criteria
+    criteria=(cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER,30,1.0)
+    K=k_val
+    attempts=10
+    ret,label,center=cv2.kmeans(vector,K,None,criteria,attempts,cv2.KMEANS_PP_CENTERS)
+
+
+    center=np.uint8(center)
+    res=center[label.flatten()]
+
+    resArr=[]
+    for ele in res:
+        h,s,v=ele[0],90,90
+        resArr.append([h, s, v])
+    resArr=np.array(resArr,dtype=np.uint8)
+    resArr=resArr.reshape(shape)
+    h_channel = resArr[:, :, 0]
+    plt.imshow(h_channel, cmap  = 'gray')
+    mask_s = []
+    maxi = np.amax(h_channel)
+
+    for pixel in h_channel.reshape(-1):
+        if pixel == maxi:
+            mask_s.append([0])
+            continue
+        mask_s.append([255])
+
+    mask_s = np.array(mask_s, dtype = np.uint8).reshape(h_channel.shape)
+    mask_s = cv2.bitwise_and(mask_s, mask_s, mask = leaf_mask)
+    return mask_s
+#function to binarize the lesions
+def binarize(image):
+    resArr = []
+    for pixel in image.reshape(image.shape[0]*image.shape[1],-1):
+        if pixel[0]==0 and pixel[1]==0 and pixel[2]==0:
+            resArr.append(0)
+        else:
+            resArr.append(255)
+    resArr = np.array(resArr, dtype = np.uint8).reshape(image.shape[0], image.shape[1])
+    return resArr
+
 #segmentation on the a* channel
 def segment_disease(leaf_image:np.ndarray, l_mask:np.ndarray, typ:str = "a") -> np.ndarray:
     '''
@@ -128,9 +197,16 @@ def segment_disease(leaf_image:np.ndarray, l_mask:np.ndarray, typ:str = "a") -> 
     returns:
     resArr => segmentation result 
     '''
+
+    if typ.lower()== "k_means_h":
+        ms = k_means_cluster_h(leaf_image = leaf_image, leaf_mask= l_mask, k_val=4)
+        fs = use_mask(ms, leaf_image)
+        ms2 = k_means_cluster_h(fs, ms, 3)
+        fms = use_mask(ms2, leaf_image)
+        return binarize(fms)
     #convert to required colorspace and extract the channel
     #extract channel
-    if typ.lower() =="a":
+    elif typ.lower() =="a":
         channel = extract_channel('lab', 1, leaf_image)
     elif typ.lower() =="h":
         channel = extract_channel('hsv', 0, leaf_image)

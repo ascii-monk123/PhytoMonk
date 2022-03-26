@@ -33,10 +33,10 @@ def detection(image, disease_type, smooth)->np.ndarray:
 		#perform a* thresholding
 		segment_a = rst.segment_disease(leaf, l_mask = leaf_mask, typ = "a")
 	
-		#perform h thresholding
-		segment_h = rst.segment_disease(leaf, leaf_mask.copy(), "h")
+		#perform k-means h thresholding
+		segment_k_h = rst.segment_disease(leaf, leaf_mask.copy(), "k_means_h")
 
-		return np.array([segment_a, segment_h, leaf_mask])
+		return np.array([segment_a, segment_k_h, leaf_mask])
 	
 	#if mildew disease
 	if disease_type.lower() == "mildew":

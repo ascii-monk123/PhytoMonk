@@ -118,7 +118,7 @@ class Results(QWidget):
         
         elif disease_type == "rust":
             self.titl1 = 'a* threshold'
-            self.title2 = 'h threshold'
+            self.titl2 = 'k-means h threshold'
 
         #define the widgets
         self.UIComponents()
