@@ -30,7 +30,7 @@ idx=1;
 for FILE in * ; 
 
 do
-mv  "$FILE" "corn_$idx.jpg" 
+mv  "$FILE" "$idx.jpg" 
 ((idx=idx+1))
 
 done;
