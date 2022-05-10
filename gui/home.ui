@@ -72,7 +72,7 @@
   <widget class="QRadioButton" name="mildew_select">
    <property name="geometry">
     <rect>
-     <x>490</x>
+     <x>440</x>
      <y>480</y>
      <width>141</width>
      <height>23</height>
@@ -85,14 +85,27 @@
   <widget class="QRadioButton" name="rust_select">
    <property name="geometry">
     <rect>
-     <x>740</x>
+     <x>590</x>
      <y>480</y>
-     <width>112</width>
+     <width>70</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
     <string>Rust</string>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="bacterialSpot_select">
+   <property name="geometry">
+    <rect>
+     <x>680</x>
+     <y>480</y>
+     <width>120</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Bacterial Spot</string>
    </property>
   </widget>
   <widget class="QLabel" name="label">

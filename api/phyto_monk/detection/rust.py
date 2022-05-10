@@ -187,7 +187,7 @@ def binarize(image):
 #segmentation on the a* channel
 def segment_disease(leaf_image:np.ndarray, l_mask:np.ndarray, typ:str = "a") -> np.ndarray:
     '''
-    Perform a* channel segmentation on the input mildew affected leaf.
+    Perform a* channel segmentation on the input rust affected leaf.
     
     Inputs:
     image=> np.ndarray representation of the image. Background must be segmented

@@ -13,6 +13,7 @@ from wsgiref.util import FileWrapper
 from PIL import Image
 from .detection import mildew as mld
 from .detection import rust as rst
+from .detection import bacterial_spot as bsp
 import io
 from .utils.helpers import compress_nparr
 
@@ -51,6 +52,23 @@ def detection(image, disease_type, smooth)->np.ndarray:
 		segment_km = mld.k_means_seg_rgb(leaf)
 	
 		return np.array([segment_km_a, segment_km, leaf_mask])
+
+	#if bacterial spot
+	if disease_type.lower() == "bacterial_spot":
+		#get the leaf_mask
+		mask = bsp.extract_background(smooth)
+		#use leaf_mask to extract leaf region
+		leaf = use_mask(mask, smooth)
+	
+		#perform k-means a* segmentation
+		segment_km_a = bsp.k_means_cluster(smooth, mask, 2)
+		#perform special peach bacterial spots segmentation
+		segment_peach = bsp.peach_special_extraction(leaf, segment_km_a)
+
+		return np.array([segment_km_a, segment_peach, mask])
+
+
+
 
 
 

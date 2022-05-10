@@ -18,7 +18,7 @@ def load_image(path:str) -> np.ndarray:
 
 
 #smoothen image
-def smoothen_image(image:np.ndarray) -> np.ndarray:
+def smoothen_image(image:np.ndarray, filter = (5, 5)) -> np.ndarray:
     '''
     Performs gaussian blur on the input image.
     Inputs:

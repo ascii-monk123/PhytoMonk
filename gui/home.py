@@ -36,9 +36,10 @@ class Home(QWidget):
         self.label = self.findChild(QLabel, "label")
         self.radio1 = self.findChild(QRadioButton, "mildew_select")
         self.radio2 = self.findChild(QRadioButton, "rust_select")
+        self.radio3 = self.findChild(QRadioButton, "bacterialSpot_select")
         self.info_line = self.findChild(QLineEdit, "path")
         self.original_image = self.findChild(QLabel, "image_original")
-        self.radio_bindings = ['mildew', 'rust']
+        self.radio_bindings = ['mildew', 'rust', "bacterial_spot"]
         #path selection handler
         self.tool_button.clicked.connect(self.imageSelection)
         #submit button handler
@@ -64,7 +65,7 @@ class Home(QWidget):
     #method to submit data to the server
     def send_image(self):
         #check if radio buttons are enabled
-        if not (self.radio1.isChecked() or self.radio2.isChecked()):
+        if not (self.radio1.isChecked() or self.radio2.isChecked() or self.radio3.isChecked()):
             self.showErrorMessage("Please Select a disease type")
             return
 
@@ -79,6 +80,8 @@ class Home(QWidget):
         
         elif self.radio2.isChecked():
             disease = self.radio_bindings[1]
+        elif self.radio3.isChecked():
+            disease = self.radio_bindings[2]
         
         self.results(disease)
 
@@ -119,6 +122,10 @@ class Results(QWidget):
         elif disease_type == "rust":
             self.titl1 = 'a* threshold'
             self.titl2 = 'k-means h threshold'
+        
+        elif disease_type == "bacterial_spot":
+            self.titl1 = "kmeans a* seg"
+            self.titl2 = "peach special k-means"
 
         #define the widgets
         self.UIComponents()
