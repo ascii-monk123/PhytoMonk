@@ -55,7 +55,7 @@ def load_nn():
     model.add(Dense(64))
     model.add(Activation('relu'))
     model.add(Dropout(0.5))
-    model.add(Dense(3, activation = 'softmax'))
+    model.add(Dense(4, activation = 'softmax'))
 
     model.compile(loss='sparse_categorical_crossentropy',
                 optimizer='adam',
