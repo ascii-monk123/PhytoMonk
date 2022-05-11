@@ -68,7 +68,7 @@ nn = load_nn()
 #decode prediction type
 def decode_prediction(pred):
     im_class = tf.argmax(pred[0], axis=-1)
-    return im_class
+    return (im_class, pred)
 #predict the disease class
 def predict(image:np.ndarray):
     return decode_prediction(nn.predict(image))

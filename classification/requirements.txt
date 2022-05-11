@@ -1,0 +1,12 @@
+keras
+numpy
+tensorflow
+fastapi
+Pillow
+uvicorn
+aiofiles
+python-multipart
+jinja2
+uvloop
+httptools
+requests
